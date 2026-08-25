@@ -71,4 +71,4 @@ if (require.main === module) {
     process.exit(rc);
   })();
 }
-module.exports = { lint, CHECKS };
+module.exports = { lint, lintWithIdentity, CHECKS };
