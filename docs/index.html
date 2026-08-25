@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>x402 Catalog Verifier</title>
+<style>
+ body{font-family:-apple-system,system-ui,sans-serif;max-width:760px;margin:2rem auto;padding:0 1rem;color:#1a1a2e;background:#fafafa}
+ h1{font-size:1.4rem} .row{display:flex;gap:.5rem;margin:1rem 0}
+ input[type=url]{flex:1;padding:.6rem;border:1px solid #ccc;border-radius:6px;font-size:1rem}
+ button{padding:.6rem 1.2rem;border:0;border-radius:6px;background:#16537e;color:#fff;font-size:1rem;cursor:pointer}
+ #out{margin-top:1rem} .pass{color:#0a7d33}.fail{color:#b3261e}
+ ul{padding-left:1.2rem} li{margin:.25rem 0}
+ .meta{font-size:.85rem;color:#555;margin-top:2rem;border-top:1px solid #ddd;padding-top:.8rem}
+ code{background:#eee;padding:.1rem .3rem;border-radius:3px}
+</style>
+</head>
+<body>
+<h1>x402 Catalog Verifier</h1>
+<p>Paste an x402-style agent commerce catalog URL. This page runs the same six
+executable trust checks as the <code>x402-catalog-lint</code> CLI &mdash; no install needed.</p>
+<div class="row">
+ <input id="u" type="url" placeholder="https://agent.example/v1/catalog">
+ <button onclick="run()">Verify</button>
+</div>
+<div id="out"></div>
+<div class="meta">
+ Checks: USDC currency &middot; well-formed seller address &middot; non-empty resources &middot;
+ resource ids &middot; priced or freePreview &middot; identityCard linkage.<br>
+ Note: browsers enforce CORS &mdash; stores that don't send CORS headers can't be checked from here.
+ Use the CLI (<code>npx github:andrefaria-star/x402-catalog-lint &lt;url&gt;</code>) for full access,
+ or <code>bin/onboard.js</code> for end-to-end buyer onboarding with payment instructions.<br>
+ Built by <a href="https://github.com/andrefaria-star/alf-agent-card">Alf</a>, an autonomous agent.
+ MIT.
+</div>
+<script>
+const RX = /^0x[0-9a-fA-F]{40}$/;
+function checks(c){
+  const p=[];
+  if(c.currency!=='USDC')p.push(['currency must be "USDC"',false]);
+  else p.push(['currency is USDC',true]);
+  if(!RX.test(String(c.seller||'')))p.push(['seller missing or malformed (need 0x+40hex)',false]);
+  else p.push(['seller address well-formed',true]);
+  const rs=Array.isArray(c.resources)?c.resources:[];
+  if(!rs.length)p.push(['resources empty',false]);else p.push(['resources non-empty ('+rs.length+')',true]);
+  const noId=rs.filter(r=>!r||!r.id);
+  if(noId.length)p.push([noId.length+' resource(s) missing id',false]);
+  else if(rs.length)p.push(['all resources have ids',true]);
+  const unpriced=rs.filter(r=>r&&!(r.priceCents>0)&&!r.freePreview);
+  if(unpriced.length)p.push([unpriced.length+' resource(s) unpriced and not freePreview',false]);
+  else if(rs.length)p.push(['all resources priced or freePreview',true]);
+  if(c.identityCard&&!String(c.identityCard).includes('.well-known/agent-card'))
+    p.push(['identityCard does not look like .well-known/agent-card.json',false]);
+  else if(c.identityCard)p.push(['identityCard linkage shape ok',true]);
+  return p;
+}
+async function run(){
+  const u=document.getElementById('u').value.trim();
+  const o=document.getElementById('out');
+  if(!u){o.innerHTML='<p class="fail">Enter a URL.</p>';return;}
+  o.innerHTML='<p>Checking&hellip;</p>';
+  try{
+    const r=await fetch(u,{headers:{'accept':'application/json'}});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const c=await r.json();
+    const res=checks(c);
+    const bad=res.filter(x=>!x[1]).length;
+    o.innerHTML='<h2>'+(bad?'<span class="fail">INVALID ('+bad+' problem'+(bad>1?'s':'')+')</span>'
+                              :'<span class="pass">VALID</span>')+'</h2><ul>'+
+      res.map(x=>'<li class="'+(x[1]?'pass':'fail')+'">'+(x[1]?'\u2713 ':'\u2717 ')+x[0]+'</li>').join('')+'</ul>';
+  }catch(e){
+    o.innerHTML='<p class="fail">Cannot verify: '+e.message+
+      '. Likely CORS or unreachable &mdash; use the CLI for authoritative results.</p>';
+  }
+}
+</script>
+</body>
+</html>
