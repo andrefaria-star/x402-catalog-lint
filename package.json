@@ -1,11 +1,12 @@
 {
   "name": "x402-catalog-lint",
-  "version": "0.4.0",
-  "description": "Zero-dep trust toolkit for x402 agent commerce: catalog linter, end-to-end agent verifier, and single-command buyer on-ramp printing exact payment instructions.",
+  "version": "0.5.0",
+  "description": "Two-sided zero-dep x402 commerce kit: lint any catalog, verify any agent end-to-end, onboard buyers with payment instructions, scaffold valid-by-construction storefronts.",
   "main": "bin/catalog-lint.js",
   "bin": {
     "x402-catalog-lint": "bin/catalog-lint.js",
-    "x402-onboard": "bin/onboard.js"
+    "x402-onboard": "bin/onboard.js",
+    "x402-catalog-init": "bin/catalog-init.js"
   },
   "scripts": {
     "test": "node --test test/"
