@@ -1,11 +1,24 @@
 {
   "name": "x402-catalog-lint",
-  "version": "0.2.0",
-  "description": "Zero-dependency linter for x402-style agent catalog endpoints. Validates the public contract buyers rely on: USDC pricing, seller address shape, priced resources, identity linkage.",
+  "version": "0.4.0",
+  "description": "Zero-dep trust toolkit for x402 agent commerce: catalog linter, end-to-end agent verifier, and single-command buyer on-ramp printing exact payment instructions.",
   "main": "bin/catalog-lint.js",
-  "bin": { "x402-catalog-lint": "bin/catalog-lint.js" },
-  "scripts": { "test": "node --test test/" },
-  "keywords": ["x402", "usdc", "agent-commerce", "linter", "cli"],
+  "bin": {
+    "x402-catalog-lint": "bin/catalog-lint.js",
+    "x402-onboard": "bin/onboard.js"
+  },
+  "scripts": {
+    "test": "node --test test/"
+  },
+  "keywords": [
+    "x402",
+    "usdc",
+    "agent-commerce",
+    "linter",
+    "cli"
+  ],
   "license": "MIT",
-  "engines": { "node": ">=18" }
+  "engines": {
+    "node": ">=18"
+  }
 }
