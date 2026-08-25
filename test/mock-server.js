@@ -14,8 +14,14 @@ const BAD = {
   service: 'demo', chain: 'base', currency: 'EUR', seller: 'nope',
   resources: [{ id: null }, {}]
 };
+const CARD_MATCH = { name: 'demo-agent', wallet: { address: GOOD.seller, chain: 'base' } };
+const CARD_MISMATCH = { name: 'imposter', wallet: { address: '0x' + 'f'.repeat(40), chain: 'base' } };
 const srv = http.createServer((req, res) => {
-  const body = req.url.startsWith('/bad') ? BAD : GOOD;
+  let body;
+  if (req.url.startsWith('/bad')) body = BAD;
+  else if (req.url.includes('card-match')) body = CARD_MATCH;
+  else if (req.url.includes('card-mismatch')) body = CARD_MISMATCH;
+  else body = GOOD;
   res.writeHead(200, { 'content-type': 'application/json' });
   res.end(JSON.stringify(body));
 });

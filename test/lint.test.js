@@ -45,6 +45,23 @@ function run(args) {
   t('dead rc=2', dead.rc === 2);
   t('dead verdict UNREACHABLE', dj && dj.verdict === 'UNREACHABLE');
 
+  // IDENTITY MATCH: catalog + matching card -> VALID rc=0
+  {
+    const r = await run([base.url + '/v1/catalog', '--identity', base.url + '/card-match', '--json']);
+    let j = null; try { j = JSON.parse(r.out); } catch (_) {}
+    t('ident-match rc=0', r.rc === 0, r.out.slice(0, 150));
+    t('ident-match verdict VALID', j && j.verdict === 'VALID', j && j.problems);
+  }
+  // IDENTITY MISMATCH: imposter card -> INVALID rc=1 with MISMATCH problem
+  {
+    const r = await run([base.url + '/v1/catalog', '--identity', base.url + '/card-mismatch', '--json']);
+    let j = null; try { j = JSON.parse(r.out); } catch (_) {}
+    t('ident-mismatch rc=1', r.rc === 1);
+    t('ident-mismatch verdict INVALID', j && j.verdict === 'INVALID');
+    t('mismatch names the problem', j && Array.isArray(j.problems) &&
+      j.problems.some(p => p.includes('MISMATCH')));
+  }
+
   base.proc.kill();
   console.log(fails ? `CATALOG-LINT SUITE RED (${fails})` : 'CATALOG-LINT SUITE GREEN');
   process.exit(fails ? 1 : 0);

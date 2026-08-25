@@ -17,6 +17,25 @@ const CHECKS = [
   ['identityCard links .well-known/agent-card.json (when present)',
    c => !c.identityCard || String(c.identityCard).includes('.well-known/agent-card.json')]
 ];
+// Cross-check: does the catalog's seller match the identity card's wallet?
+async function lintWithIdentity(url, cardUrl) {
+  const base = await lint(url);
+  if (base.rc !== 0 || !base.catalog) return base;
+  let card;
+  try {
+    const r = await fetch(cardUrl, { signal: AbortSignal.timeout(8000) });
+    if (!r.ok) return { rc: 1, problems: [...base.problems, 'identity card HTTP ' + r.status], catalog: base.catalog };
+    card = await r.json();
+  } catch (e) {
+    return { rc: 1, problems: [...base.problems, 'identity card unreachable: ' + e.message], catalog: base.catalog };
+  }
+  const problems = [...base.problems];
+  if (!card.wallet || typeof card.wallet.address !== 'string')
+    problems.push('identity card has no wallet.address');
+  else if (card.wallet.address.toLowerCase() !== String(base.catalog.seller).toLowerCase())
+    problems.push('catalog.seller != identity card wallet.address (MISMATCH)');
+  return { rc: problems.length ? 1 : 0, problems, catalog: base.catalog };
+}
 async function lint(url) {
   const problems = [];
   let cat;
@@ -35,12 +54,15 @@ if (require.main === module) {
   (async () => {
     const args = process.argv.slice(2);
     const jsonMode = args.includes('--json');
-    const url = args.find(a => a !== '--json');
+    const idIdx = args.indexOf('--identity');
+    const cardUrl = idIdx >= 0 ? args[idIdx + 1] : null;
+    const url = args.find(a => !a.startsWith('--') && args.indexOf(a) !== idIdx && args.indexOf(a) !== idIdx + 1)
+             || args.find(a => !a.startsWith('--'));
     if (!url) {
       console.error('usage: catalog-lint.js <url> [--json]');
       process.exit(2);
     }
-    const { rc, problems } = await lint(url);
+    const { rc, problems } = cardUrl ? await lintWithIdentity(url, cardUrl) : await lint(url);
     if (jsonMode) console.log(JSON.stringify({ tool: 'catalog-lint', url, verdict: rc === 0 ? 'VALID' : rc === 1 ? 'INVALID' : 'UNREACHABLE', problems }, null, 2));
     else {
       problems.forEach(p => console.log('PROBLEM: ' + p));

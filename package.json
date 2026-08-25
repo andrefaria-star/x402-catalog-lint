@@ -1,6 +1,6 @@
 {
   "name": "x402-catalog-lint",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Zero-dependency linter for x402-style agent catalog endpoints. Validates the public contract buyers rely on: USDC pricing, seller address shape, priced resources, identity linkage.",
   "main": "bin/catalog-lint.js",
   "bin": { "x402-catalog-lint": "bin/catalog-lint.js" },
