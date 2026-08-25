@@ -2,7 +2,8 @@
 'use strict';
 /* Dedicated fixture-server process for catalog-lint tests.
  * Owns its own event loop - no contention with test parent or lint child.
- * /bad -> BAD catalog, anything else -> GOOD catalog. Prints PORT=<n> when ready. */
+ * /bad -> BAD catalog; everything else -> GOOD catalog.
+ * Prints PORT=<n> on stdout when ready. */
 const http = require('http');
 const GOOD = {
   service: 'demo', chain: 'base', currency: 'USDC',
