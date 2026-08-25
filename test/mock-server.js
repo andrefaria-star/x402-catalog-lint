@@ -33,6 +33,12 @@ const srv = http.createServer((req, res) => {
              wallet: { address: GOOD.seller, chain: 'base' },
              catalogUrl: b + '/v1/catalog' };
   }
+  else if (req.url.includes('erc-good')) {
+    const b = 'http://127.0.0.1:' + srv.address().port;
+    body = { type: 'https://eips.ethereum.org/EIPS/eip-8004#identity',
+             name: 'demo-agent', contact: { eth: GOOD.seller },
+             catalogUrl: b + '/v1/catalog' };
+  }
   else if (req.url.includes('full-bad')) body = FULL_BAD_CARD;
   else body = GOOD;
   res.writeHead(200, { 'content-type': 'application/json' });

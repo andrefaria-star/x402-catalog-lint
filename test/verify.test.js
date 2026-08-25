@@ -40,6 +40,14 @@ function run(args) {
   t('bad verdict NOT TRUSTWORTHY', bj && bj.verdict === 'NOT TRUSTWORTHY');
   t('bad names card problems', bj && Array.isArray(bj.problems) && bj.problems.length >= 2);
 
+  // ERC-8004 shape (contact.eth): must also verify GREEN end-to-end
+  {
+    const r = await run([base.url + '/erc-good', '--json']);
+    let j = null; try { j = JSON.parse(r.out); } catch (_) {}
+    t('erc8004 rc=0', r.rc === 0, r.out.slice(0, 250));
+    t('erc8004 verdict TRUSTWORTHY', j && j.verdict === 'TRUSTWORTHY', j && j.problems);
+  }
+
   const d = await run(['http://127.0.0.1:9/card.json', '--json']);
   t('dead rc=2', d.rc === 2);
 

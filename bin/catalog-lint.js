@@ -18,9 +18,15 @@ const CHECKS = [
    c => !c.identityCard || String(c.identityCard).includes('.well-known/agent-card.json')]
 ];
 // Cross-check: does the catalog's seller match the identity card's wallet?
-async function lintWithIdentity(url, cardUrl) {
+async function lintWithIdentity(url, cardUrl, knownSellerAddr) {
   const base = await lint(url);
   if (base.rc !== 0 || !base.catalog) return base;
+  if (knownSellerAddr) {
+    const ok = String(base.catalog.seller).toLowerCase() === knownSellerAddr.toLowerCase();
+    return { rc: ok ? 0 : 1,
+             problems: ok ? [] : ['catalog.seller != card payment identity (MISMATCH)'],
+             catalog: base.catalog };
+  }
   let card;
   try {
     const r = await fetch(cardUrl, { signal: AbortSignal.timeout(8000) });
