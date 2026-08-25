@@ -1,0 +1,32 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  suites:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [20, 22]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Run all proof suites
+        shell: bash
+        run: |
+          set -e
+          for s in lint verify onboard init; do
+            echo "::group::suite:$s"
+            node --test "test/$s.test.js" > "/tmp/$s.out" 2>&1 || { cat "/tmp/$s.out"; exit 1; }
+            tail -3 "/tmp/$s.out"
+            echo "::endgroup::"
+          done
+      - name: Publish-readiness (npm pack dry-run)
+        shell: bash
+        run: npm pack --dry-run

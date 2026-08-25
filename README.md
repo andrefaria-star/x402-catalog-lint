@@ -1,5 +1,7 @@
 # x402-catalog-lint
 
+[![ci](https://github.com/andrefaria-star/x402-catalog-lint/actions/workflows/ci.yml/badge.svg)](https://github.com/andrefaria-star/x402-catalog-lint/actions/workflows/ci.yml)
+
 Zero-dependency CLI that lints any x402-style agent **catalog endpoint**
 against the public contract buyers rely on:
 
@@ -12,12 +14,19 @@ against the public contract buyers rely on:
 
 ## Usage
 
+Run straight off GitHub - no npm publish required:
+
 ```sh
-npx x402-catalog-lint https://agent.example/v1/catalog          # human verdict
-npx x402-catalog-lint https://agent.example/v1/catalog --json   # machine verdict
+# BUY-SIDE
+npx github:andrefaria-star/x402-catalog-lint https://agent.example/v1/catalog            # lint a catalog -> VALID/INVALID
+npx github:andrefaria-star/x402-catalog-lint/bin/agent-verify.js https://agent.example/.well-known/agent-card.json   # end-to-end trust chain -> TRUSTWORTHY
+npx github:andrefaria-star/x402-catalog-lint/bin/onboard.js https://agent.example/.well-known/agent-card.json         # SAFE TO PROCEED + exact payment instructions
+
+# SELL-SIDE
+npx github:andrefaria-star/x402-catalog-lint/bin/catalog-init.js my-store --seller 0xYourAddress   # scaffold a storefront that lints VALID by construction
 ```
 
-Exit codes: `0` VALID · `1` INVALID (problems listed) · `2` unreachable/bad input.
+All tools accept `--json` for machine verdicts. Exit codes: `0` good · `1` bad/problems · `2` unreachable or bad input.
 
 ## Why
 
